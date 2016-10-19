@@ -1,0 +1,22 @@
+<div class="row">
+<div class="col-md-8 col-md-offset-2">
+<h1 style="text-align:center;">Welcome to the Concentration Game</h1>
+<h3 style="text-align:center;">Rules: all cards are face down with symbols on them.  There are two of each symbol, match cards two at a time until you've matched them all.  Enjoy!
+</div>
+</div>
+
+
+<script>
+var number = -1;
+
+while(number<2 || number>1024)
+{
+
+  number = prompt("How many cards would you like? Must be an even integer greater than 2, less than 1024", "12");
+  if(number%2!==0)
+    number = -1;
+  if(number ==null)
+    number =12;
+}
+init(number);
+</script>
