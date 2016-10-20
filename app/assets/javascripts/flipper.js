@@ -5,6 +5,10 @@ var fontawesome = ["fa-caret-right", "fa-arrow-right", "fa-fast-backward", "fa-e
 var total= 0;
 var prev = 0;
 var win = 0;
+var p1score = 0;
+var p2score = 0;
+var turn = 0;
+
 function flip(x) {
 	//change class to flipped, which spins the card around
 	$('#'+x).toggleClass('flipped');
@@ -23,6 +27,14 @@ function checkFlip(x)
   	setTimeout(function(){
   	if($('#'+x + ' > .back > i').attr('class')==$('#'+prev+' > .back > i').attr('class'))
   	{
+  		//if p1 turn, add 1 to score, else add to p2 score
+  		if (turn%2==0)
+  			{p1score+=1;
+  			 $("#p1").text(p1score);
+  			}
+  		else
+  			{p2score+=1;
+  			 $("#p2").text(p2score);}
   		//add to total to see how many successful matches there are.  once total = all cards, then game is done! 
 			total+=2;
 			checkWin();
@@ -32,6 +44,9 @@ function checkFlip(x)
   		//if the selection was wrong, flip it back over
 			$('#'+x).toggleClass('flipped');
 			$('#'+prev).toggleClass('flipped');
+			turn+=1; 
+			$("#player").text((turn%2)+1);
+  		
   	}
   	//after comparing two cards, return flips to 0 so that we can compare two others.
   	flips=0;
@@ -92,7 +107,7 @@ function init(num)
 	}
 	lines += '</div></div>';
 	document.write(lines);
-	checkFont();
+	
 
 }
 
