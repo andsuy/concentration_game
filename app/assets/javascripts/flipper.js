@@ -6,7 +6,7 @@ var total= 0;
 var prev = 0;
 var win = 0;
 function flip(x) {
-		
+	//change class to flipped, which spins the card around
 	$('#'+x).toggleClass('flipped');
 	checkFlip(x);
 }
@@ -48,6 +48,7 @@ function checkFlip(x)
 
 function checkWin()
 {
+	//if all cards have been matched, give a win.  if user chooses yes, they play again by reloading the page
 	if(total==win)
 		{
 			if(confirm('You won!  Do you want to play again?')){
