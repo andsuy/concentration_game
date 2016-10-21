@@ -5,22 +5,25 @@ var Player = function(name){
 }
 
 Player.prototype.checkFlip = function(card1, card2){ 
-  //scope
-  player = this;
+  //stops all other clicks, turns it to true first so that the player may go until they make a mistake
+  this.isTurn=true;
   $(document.body).toggleClass('stopClick');
-  setTimeout(function(){
+  //compare card values
   if(card1.val==card2.val)
   { 
-    player.score +=1;
-    $('#'+player.playerID).text(player.score);
+    this.score +=1;
+    $('#'+this.playerID).text(this.score);//set the score for this particular player.  check html for reference
+    $(document.body).toggleClass('stopClick');
   }
   else{
+    this.isTurn = false;//if false match, wait 2 seconds so user has time to process it.  then flip them back over
+    setTimeout(function(){
     card1.flip();
     card2.flip();
-    player.isTurn = false;
-  }
-  $(document.body).toggleClass('stopClick');
+    $(document.body).toggleClass('stopClick');
   }, 2000); 
+  }
+  
 }
 
 var Card = function(name, value){
@@ -35,7 +38,7 @@ Card.prototype.flip= function(){
 }
 
 Card.prototype.displayCard = function(){
-
+  //write all html for the cards.  div "container", containing div "card", with two divs: "front" and "back".  This is for the css to flip the card
   var lines = '<div class="container col-lg-3 col-md-3 col-sm-3" ' + 'id="'+this.cardID+'">'
   lines +=  '<div class="card">' 
   lines +=  '<div class="front"></div>'
@@ -49,6 +52,7 @@ Card.prototype.displayCard = function(){
 
 
 var Game = function(numCards, numPlayers){
+  //creating game class to hold array of all possible objects
   this.numPlayers = numPlayers;
   this.numCards = numCards;
   this.numCorrect=0;
@@ -75,15 +79,17 @@ Game.prototype.initGame = function()
   var lines = '<div class="row"><div class="col-md-8 col-md-offset-2">'
   var iconArr = this.initIcons(this.numCards);
   for (var i = 0; i<this.numCards; i++)
-  {
+  {//create all the cards
     this.cards.push(new Card(i, iconArr[i]));
     lines += this.cards[i].displayCard();
   }
   lines += '</div></div>';
   document.write(lines);
+  //write out all the cards for the game
 }
 
 Game.prototype.initPlayers = function(){
+  //create players, open ended so there may be more than 2 players
   for(var i = 0; i<this.numPlayers; i++)
   {
     var name = "player" + (i+1);
@@ -95,47 +101,75 @@ Game.prototype.initPlayers = function(){
 
 function runGame(num)
 {
-  var game = new Game(4, 2);
-  var prev = -1;
-  $('.container').click(function(){
-    var curr = $(this).attr('id');
+  //variables to start game and check cards
+  var game = new Game(num, 2);
+  var prevCard = -1;
+  var playerTurn = 0;
+  var player = game.players[playerTurn];
+  $('.container').click(function(){     //click bind to a container class, returns id of container that was clicked
+    var currCard = $(this).attr('id');
       
-    game.cards[curr].flip();  
-    if(prev!==-1)
+    game.cards[currCard].flip();  //flip the card
+    if(prevCard!==-1) //check to see if there has been one card selected already
     {
-      var playerTurn = checkTurn(game.players[0],game.players[1]);
-      playerTurn.checkFlip(game.cards[curr],game.cards[prev]);
-      prev=-1;
-      
+      player.checkFlip(game.cards[currCard],game.cards[prevCard]);    //compare first and second cards to see if they match
+      playerTurn = checkTurn(player,playerTurn, game);    //check to see if turns should change
+      player = game.players[playerTurn];      //assign players to new player if needed
+      prevCard=-1;
+      $('#turn').text(player.playerID);     //change player turn text on page
     }
     else
-      prev = curr;
-    
+      prevCard = currCard;   //if no previous card selected, set previous card to current one
+    game.checkWin();
   });
 }
 
-function checkTurn(player1, player2)
+function checkTurn(player, playerTurn, game)
 {
-  if(player1.isTurn)
-    return player1;
-  return player2;
+  //checks if the current player returned false, then changes turn to other player
+   if(player.isTurn==false)
+      {
+        if(playerTurn==0)
+          playerTurn=1;
+        else
+          playerTurn=0;
+      }
+    else
+    {
+      game.numCorrect+=2; //increment the numcorrect by 2 if there is no change in turn
+    }
 
+    return playerTurn;
 }
 
 
 Game.prototype.checkWin = function()
 {
+  p1score = this.players[0].score;
+  p2score = this.players[1].score;
 	//if all cards have been matched, give a win.  if user chooses yes, they play again by reloading the page
 	if(this.numCorrect==this.numCards)
 		{
-      return true;
-			if(confirm('You won!  Do you want to play again?')){
+      if(p1score>p2score)
+      {
+			if(confirm('Player 1 won!  Do you want to play again?')){
     		window.location.reload();  
-			}
-
+			 }
+      }
+      else if(p2score>p1score)
+      {
+      if(confirm('Player 2 won!  Do you want to play again?')){
+        window.location.reload();  
+      }
+      }
+      else
+      {
+      if(confirm('You tied!  Do you want to play again?')){
+        window.location.reload();  
+      }
+      }
 		}
-    else
-      {return false;}
+    
 }
 
 function shuffle(array) {
@@ -155,4 +189,21 @@ function shuffle(array) {
   }
 
   return array;
+}
+
+function userInput(){
+  var number = -1;
+  //keep prompting until the input matches parameters.  then initialize with that number
+  while(number<2 || number>1024)
+  {
+
+    number = prompt("How many cards would you like? Must be an even integer greater than 2, less than 1024", "12");
+    if(number%2!==0)
+      number = -1;
+    if(number ==null)
+      number =12;
+  }
+
+  runGame(number,2)
+
 }
